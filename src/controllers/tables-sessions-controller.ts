@@ -53,7 +53,25 @@ class TablesSessionsController {
         .refine((value) => !isNaN(value), { message: "id must be a number" })
         .parse(request.params.id);
 
-        return response.json()
+      const session = await knex<TablesSessionsRepository>("table_sessions")
+        .where({ id })
+        .first();
+
+      if (!session) {
+        throw new AppError("session table not found");
+      }
+
+      if (session.closed_at) {
+        throw new AppError("this session table is already closed");
+      }
+
+      await knex<TablesSessionsRepository>("table_sessions")
+        .update({
+          closed_at: knex.fn.now(),
+        })
+        .where({ id });
+
+      return response.json();
     } catch (error) {
       next(error);
     }
