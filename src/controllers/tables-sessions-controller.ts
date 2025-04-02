@@ -19,7 +19,7 @@ class TablesSessionsController {
         .first();
 
       if (session && !session.closed_at) {
-        throw new AppError("this table is already open")
+        throw new AppError("this table is already open");
       }
 
       await knex<TablesSessionsRepository>("table_sessions").insert({
@@ -28,6 +28,18 @@ class TablesSessionsController {
       });
 
       return response.status(201).json();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async index(request: Request, response: Response, next: NextFunction) {
+    try {
+      const sessions = await knex<TablesSessionsRepository>(
+        "table_sessions"
+      ).orderBy("closed_at");
+
+      return response.json(sessions)
     } catch (error) {
       next(error);
     }
